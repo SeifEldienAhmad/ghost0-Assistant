@@ -410,11 +410,6 @@ data_check.txt       # Database statistics (auto-updated)
 
 ## 🛡️ Security Considerations
 
-### API Key Protection
-- API keys stored in `.env` (not in code)
-- `.gitignore` prevents accidental commits
-- Never commit `.env` file
-
 ### Input Validation
 - External commands sanitized
 - Subprocess inputs validated

@@ -12,11 +12,6 @@
 - **Tactical Memory** - Learns from each penetration test session
 - **Smart Payloads** - Context-aware payload recommendations
 
-### Latest Update (May 2026)
-✅ **Streaming Model Responses** - Enabled token-by-token streaming for real-time user feedback  
-✅ **Optimized Code** - Removed cache bloat and unnecessary temporary files  
-✅ **Cleaner Repository** - Pruned generated files from version control
-
 Perfect for:
 - CTF competitions
 - Bug bounty hunting

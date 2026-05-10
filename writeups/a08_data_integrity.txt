@@ -1,0 +1,57 @@
+Software and Data Integrity Failures (A08:2021):
+
+### Description:
+Data Integrity Failures involve scenarios where data or software is modified without authorization. This includes insecure deserialization, tampering with data in transit, and compromised update mechanisms.
+
+### Indicators:
+- Unsigned software updates
+- Unverified data inputs
+- Lack of integrity checks
+- Tampered data accepted
+
+### Common Issues:
+- Insecure deserialization
+- Insufficient logging and monitoring
+- Lack of data integrity verification
+- Compromised CI/CD pipelines
+- Insecure data transmission
+
+### Testing Methodology:
+- Test update mechanisms for tampering
+- Check for deserialization vulnerabilities
+- Verify data integrity checks
+- Inspect data in transit
+- Test for data tampering
+
+### Exploitation Techniques:
+- Inject malicious updates
+- Exploit deserialization to execute code
+- Modify data in transit
+- Tamper with cached data
+- Abuse insecure data handling
+
+### Examples:
+- Java deserialization with ysoserial
+- Unsigned mobile app updates
+- Tampered API responses
+- Insecure JWT manipulation
+
+### Tools:
+- ysoserial for deserialization testing
+- Burp Suite for data tampering
+- Custom scripts for integrity checks
+- CodeQL for static analysis
+
+### Mitigation:
+- Implement code signing
+- Use integrity checks (hashes, signatures)
+- Secure deserialization practices
+- Verify data authenticity
+- Secure CI/CD pipelines
+- Implement proper monitoring
+
+### Questions to Ask:
+- Is data integrity verified?
+- Can I tamper with trusted data?
+- Are updates properly signed?
+- Is deserialization secure?

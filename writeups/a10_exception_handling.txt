@@ -1,0 +1,52 @@
+Server-Side Request Forgery (SSRF) (A10:2021) - Misconfigured Exception Handling:
+
+### Description:
+While the OWASP Top 10 lists SSRF as A10, this writeup focuses on misconfigured exception handling which can lead to information disclosure. Exception handling failures expose sensitive information through error messages.
+
+### Indicators:
+- Detailed error messages in production
+- Stack traces exposed to users
+- Debug information leaked
+- Internal system details revealed
+
+### Common Issues:
+- Verbose error handling
+- Information leakage in exceptions
+- Debug mode enabled
+- Poor error page configuration
+- Sensitive data in error messages
+
+### Testing Methodology:
+- Trigger errors intentionally
+- Send malformed requests
+- Test edge cases
+- Check error responses for sensitive info
+
+### Exploitation Techniques:
+- Reveal internal paths and structures
+- Identify technologies and versions
+- Map backend architecture
+- Pivot to other vulnerabilities
+
+### Examples:
+- SQL errors showing query structure
+- File paths in stack traces
+- Database connection strings
+- Internal IP addresses
+
+### Tools:
+- Burp Suite for error triggering
+- Fuzzing tools
+- Custom error injection scripts
+
+### Mitigation:
+- Implement generic error pages
+- Disable debug mode in production
+- Log errors securely
+- Use proper exception handling
+- Sanitize error messages
+
+### Questions to Ask:
+- What information does the error reveal?
+- Can I use it to pivot attacks?
+- Are errors handled securely?

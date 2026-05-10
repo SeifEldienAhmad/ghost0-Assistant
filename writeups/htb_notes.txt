@@ -1,0 +1,80 @@
+General CTF / HTB Methodology:
+
+### Reconnaissance Phase:
+- **Nmap scanning**: Full port scan, service versions, OS detection
+  - nmap -sC -sV -O -p- target
+  - UDP scan: nmap -sU target
+- **Web enumeration**: Directory busting, parameter discovery
+  - gobuster dir -u http://target -w /usr/share/wordlists/dirb/common.txt
+  - ffuf -u http://target/FUZZ -w wordlist.txt
+- **DNS enumeration**: Subdomain discovery, zone transfers
+- **Service-specific checks**: SMB shares, NFS exports, etc.
+
+### Enumeration Phase:
+- **Web applications**: 
+  - Check for common vulnerabilities (OWASP Top 10)
+  - Test authentication, authorization
+  - Look for file upload, command injection points
+- **Services**:
+  - FTP: Anonymous access, weak creds
+  - SMB: Null sessions, share enumeration
+  - SSH: Key-based auth, weak passwords
+- **Misconfigurations**:
+  - Exposed admin panels
+  - Default credentials
+  - Unnecessary services
+
+### Initial Access Techniques:
+- **Web exploits**: SQLi, XSS, file inclusion, RCE
+- **Service exploits**: Known CVEs in exposed services
+- **Credential attacks**: Brute force, password spraying
+- **File uploads**: Webshell uploads, malicious file execution
+- **Social engineering**: Phishing, credential reuse
+
+### Privilege Escalation:
+- **Local enumeration**:
+  - System info: uname -a, cat /etc/os-release
+  - Users: cat /etc/passwd, id
+  - Sudo permissions: sudo -l
+- **SUID binaries**: find / -perm -4000 2>/dev/null
+- **Cron jobs**: cat /etc/crontab, crontab -l
+- **Kernel exploits**: Check kernel version vs. known exploits
+- **Service exploits**: Misconfigured services with root privileges
+- **Password cracking**: /etc/shadow, unshadow + john/hashcat
+
+### Post-Exploitation:
+- **User enumeration**: Getent passwd, history files
+- **Flag hunting**: find / -name "*flag*" 2>/dev/null
+- **Network pivoting**: SSH tunneling, port forwarding
+- **Data exfiltration**: Download sensitive files
+- **Persistence**: Cron jobs, backdoors, scheduled tasks
+
+### Mindset and Philosophy:
+- **Chain vulnerabilities**: Small findings lead to big impacts
+- **Think like attacker**: What can I control? What assumptions are made?
+- **Document everything**: Screenshots, commands, findings
+- **Try obvious first**: Default creds, common misconfigs
+- **Be methodical**: Don't skip steps, use checklists
+
+### Common Tools:
+- **Recon**: nmap, masscan, dnsrecon
+- **Web**: burp suite, owasp zap, nikto, dirbuster
+- **Exploitation**: metasploit, sqlmap, hydra
+- **Post-exploitation**: linpeas, winpeas, pspy
+- **Password cracking**: hashcat, john the ripper
+- **Networking**: wireshark, tcpdump, netcat
+
+### Common Pitfalls:
+- Missing UDP scans
+- Not checking all ports thoroughly
+- Ignoring low-privilege access
+- Not reading service banners
+- Skipping manual testing after automated scans
+
+### Questions to Always Ask:
+- What services are exposed?
+- What is misconfigured?
+- What can I control or influence?
+- Are there default credentials?
+- Can I escalate privileges?
+- Where are the flags hidden?

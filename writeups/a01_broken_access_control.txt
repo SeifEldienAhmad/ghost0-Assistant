@@ -1,0 +1,62 @@
+Broken Access Control (A01:2021):
+
+### Description:
+Broken Access Control occurs when an application fails to properly enforce restrictions on what authenticated users are allowed to do. This can lead to unauthorized access to sensitive data or functions.
+
+### Indicators:
+- Access resources without proper authentication
+- Access other users' data (IDOR - Insecure Direct Object Reference)
+- Change parameters like user_id, account_id in URLs or forms
+- Access admin endpoints as a regular user
+- View or modify data belonging to other users
+
+### Common Issues:
+- Missing authorization checks on server-side
+- IDOR vulnerabilities allowing direct access via predictable identifiers
+- Forced browsing to hidden pages
+- Privilege escalation through parameter manipulation
+- Inadequate role-based access control (RBAC)
+- Exposure of sensitive API endpoints
+
+### Testing Methodology:
+- Modify IDs in requests (e.g., /user/123 to /user/124)
+- Access admin endpoints as a normal user (/admin/panel)
+- Remove or alter authentication tokens/cookies
+- Test horizontal privilege escalation (same role, different user)
+- Test vertical privilege escalation (higher privileges)
+- Use tools to enumerate hidden endpoints
+
+### Exploitation Techniques:
+- Read/modify other users' private data
+- Privilege escalation to admin roles
+- Access restricted admin panels or functions
+- Bypass paywalls or subscription checks
+- Manipulate shopping cart prices or quantities
+
+### Examples:
+- URL: /api/user/profile?id=123 → Change to id=124 to view another user's profile
+- API endpoint: POST /admin/deleteUser without admin role
+- File access: /files/private/secret.pdf accessible without auth
+
+### Tools:
+- Burp Suite (Intruder for ID enumeration)
+- OWASP ZAP
+- Postman for API testing
+- Dirbuster/Gobuster for endpoint discovery
+- Custom scripts for parameter fuzzing
+
+### Mitigation:
+- Implement proper authorization checks on every endpoint
+- Use role-based access control (RBAC) or attribute-based access control (ABAC)
+- Avoid exposing internal object references
+- Enforce server-side validation
+- Use session management with proper timeouts
+- Implement least privilege principle
+- Regular access control reviews and testing
+
+### Questions to Ask:
+- Can I access data that is not mine?
+- Is authorization checked server-side or only client-side?
+- Are there predictable identifiers I can manipulate?
+- Can I escalate my privileges?
+- Are admin functions properly protected?

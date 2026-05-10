@@ -1,0 +1,59 @@
+Cryptographic Failures (A02:2021):
+
+### Description:
+Cryptographic Failures occur when sensitive data is not properly protected. This includes weak encryption, improper key management, and transmission of sensitive data in clear text.
+
+### Indicators:
+- Sensitive data in plaintext (passwords, PII, financial data)
+- Weak hashing algorithms (MD5, SHA1)
+- Hardcoded secrets in code
+- Insecure protocols (HTTP instead of HTTPS)
+
+### Common Issues:
+- No encryption in transit or at rest
+- Weak cipher suites
+- Improper certificate validation
+- Hardcoded cryptographic keys
+- Use of deprecated algorithms
+- Insufficient key lengths
+
+### Testing Methodology:
+- Inspect network traffic for plaintext data
+- Check password storage mechanisms
+- Test for weak SSL/TLS configurations
+- Search for hardcoded secrets in code
+- Verify certificate validity
+
+### Exploitation Techniques:
+- Crack weak hashes (rainbow tables, brute force)
+- MITM attacks on HTTP
+- Steal hardcoded credentials
+- Decrypt weakly encrypted data
+- Exploit padding oracle attacks
+
+### Examples:
+- Passwords stored as MD5 hashes
+- API keys in JavaScript source
+- Login over HTTP
+- Weak SSL ciphers allowing downgrade
+
+### Tools:
+- Wireshark for traffic analysis
+- Hashcat/John the Ripper for cracking
+- SSL Labs for SSL testing
+- Burp Suite for intercepting traffic
+- Grep for hardcoded secrets
+
+### Mitigation:
+- Use strong, modern encryption algorithms
+- Implement HTTPS everywhere
+- Store secrets securely (vaults, environment variables)
+- Regular key rotation
+- Use HSTS and secure headers
+- Avoid custom crypto implementations
+
+### Questions to Ask:
+- Is data encrypted in transit and at rest?
+- Are strong algorithms and key lengths used?
+- Are secrets properly managed?
+- Can data be intercepted or tampered with?

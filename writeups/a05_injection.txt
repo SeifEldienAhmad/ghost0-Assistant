@@ -1,0 +1,61 @@
+Injection (A03:2021):
+
+### Description:
+Injection flaws occur when untrusted data is sent to an interpreter as part of a command or query. The most common is SQL injection, but also includes OS command injection, LDAP injection, etc.
+
+### Indicators:
+- User input directly concatenated into queries/commands
+- Error messages revealing backend technology
+- Unexpected behavior from crafted inputs
+
+### Types of Injection:
+- SQL Injection (SQLi)
+- Command Injection (OS Command Injection)
+- LDAP Injection
+- XPath Injection
+- NoSQL Injection
+- XML Injection
+
+### Common Issues:
+- Direct string concatenation in queries
+- Lack of input sanitization
+- Improper escaping of special characters
+- Use of dangerous functions
+
+### Testing Methodology:
+- Send special characters: ' " ; | < >
+- Test for SQL errors or command execution
+- Use fuzzing tools
+- Check for blind injection (time-based, boolean-based)
+
+### Exploitation Techniques:
+- Data extraction (database dumps)
+- Remote code execution
+- Privilege escalation
+- Data manipulation or deletion
+- Bypassing authentication
+
+### Examples:
+- SQL: ' OR 1=1 -- (bypasses login)
+- Command: ; rm -rf / (deletes files)
+- LDAP: * to dump directory
+
+### Tools:
+- sqlmap for SQL injection
+- Burp Suite Intruder for fuzzing
+- Commix for command injection
+- Custom scripts for testing
+
+### Mitigation:
+- Use parameterized queries/prepared statements
+- Input validation and sanitization
+- Escape special characters
+- Use ORM libraries
+- Least privilege database accounts
+- Web Application Firewall (WAF)
+
+### Questions to Ask:
+- Is input sanitized and validated?
+- Can I break query/command logic?
+- Are dangerous functions avoided?
+- Is there a WAF in place?

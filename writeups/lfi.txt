@@ -1,0 +1,66 @@
+### Description:
+Local File Inclusion (LFI) is a web vulnerability that allows an attacker to include and execute files on the server through the web browser. This occurs when user input is not properly sanitized, enabling attackers to traverse directories and access sensitive files, potentially leading to information disclosure, remote code execution, or full system compromise.
+
+### Detection:
+- Identify parameters that might include files: ?page=, ?file=, ?include=, ?template=
+- Test basic directory traversal: ../../../../etc/passwd
+- Look for error messages indicating file inclusion failures or unexpected content rendering
+- Use tools like Burp Suite to intercept and modify requests
+
+### Basic Exploitation:
+- Read system files: ../../../../etc/passwd, ../../../../etc/shadow
+- Access web server logs: ../../../../var/log/apache2/access.log, ../../../../var/log/nginx/access.log
+- Include configuration files: ../../../../config.php, ../../../../database.php
+- Read environment variables: ../../../../proc/self/environ
+
+### Advanced Techniques:
+- Log poisoning: Inject malicious code (e.g., PHP) into log files via User-Agent or other headers, then include the log file
+- Session file poisoning: Manipulate PHP session files if stored in predictable locations
+- PHP wrappers: Use php://filter for reading files with base64 encoding, data:// for executing code, expect:// for command execution
+- Remote file inclusion (RFI) if enabled: Include files from external URLs
+- Null byte injection to bypass extensions: ../../../../etc/passwd%00
+
+### Common Targets:
+- /etc/passwd (user accounts)
+- /etc/shadow (hashed passwords)
+- /var/log/apache2/access.log (access logs)
+- /proc/self/environ (environment variables)
+- /home/user/.ssh/id_rsa (SSH keys)
+- config.php, wp-config.php (application configs)
+- /etc/hosts, /etc/resolv.conf (network configs)
+
+### Bypass Techniques:
+- Null byte (%00) to terminate strings
+- Double encoding (%252e%252e%252f for ../)
+- Path truncation (../../../../etc/passwd....)
+- Filter bypass using case variations or unicode
+- Using absolute paths instead of relative
+- Bypassing with ; or ? in paths
+
+### Tools:
+- Burp Suite: Manual testing and parameter manipulation
+- wfuzz/ffuf: Fuzzing for LFI discovery
+- LFI scanners and scripts (e.g., custom Python scripts)
+- sqlmap (if combined with SQLi)
+- Dirbuster/Gobuster for directory enumeration
+
+### Prevention:
+- Implement whitelisting: Only allow inclusion of predefined safe files
+- Disable allow_url_include and allow_url_fopen in PHP configuration
+- Use functions like realpath() and basename() to validate and sanitize paths
+- Input validation: Reject or escape dangerous characters (.. , / , \)
+- Use secure coding practices: Avoid direct file inclusion from user input
+- Web Application Firewall (WAF) rules to detect traversal attempts
+
+### Examples:
+- Vulnerable code: include($_GET['page'] . '.php');
+- Exploitation: ?page=../../../../etc/passwd
+- Safe alternative: $allowed_pages = ['home', 'about']; if (in_array($_GET['page'], $allowed_pages)) include($_GET['page'] . '.php');
+
+### Questions to Ask:
+- Can I read arbitrary files on the system?
+- Can I execute code via log poisoning or wrappers?
+- Where are log files and session files stored?
+- Is allow_url_include enabled?
+- Can I combine this with other vulnerabilities (e.g., SQLi for file paths)?
+- Is there a WAF blocking my attempts?

@@ -1,0 +1,49 @@
+Service: phpMyAdmin
+CVE: CVE-2018-12613
+
+Summary:
+- Local File Inclusion (LFI) vulnerability in phpMyAdmin
+- Allows reading arbitrary files on the server via directory traversal
+- Exploits the 'target' parameter in index.php
+
+Affected Versions:
+- phpMyAdmin 4.8.0 through 4.8.3
+
+Prerequisites:
+- phpMyAdmin web interface accessible
+- No authentication required for the vulnerable endpoint
+
+Detection:
+- phpMyAdmin login page or interface exposed
+- Version check (look for version in footer or source)
+- Test for LFI with traversal payloads
+
+Exploitation Steps:
+1. Access the phpMyAdmin index.php page
+2. Use the 'target' parameter with directory traversal
+3. Read sensitive files like /etc/passwd, config files, etc.
+
+Example Exploitation:
+- GET /index.php?target=db_sql.php%253f/../../../../etc/passwd
+- The %253f is URL-encoded ?, and ../../../../ for traversal
+
+Impact:
+- Read arbitrary files on the server
+- Potential to leak sensitive information like database credentials, SSH keys, etc.
+- No direct code execution, but can lead to further attacks
+
+Mitigation:
+- Upgrade phpMyAdmin to 4.8.4 or later
+- Restrict access to phpMyAdmin with authentication and IP whitelisting
+- Use alternatives like Adminer or database clients
+- Monitor for unusual file access
+
+References:
+- https://www.phpmyadmin.net/security/PMASA-2018-4/
+- NIST CVE details
+- Exploit-DB
+
+Notes:
+- Also known as PMASA-2018-4
+- Common in misconfigured or outdated phpMyAdmin installations
+- Combine with other vulnerabilities for full compromise

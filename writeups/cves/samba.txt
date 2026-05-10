@@ -1,0 +1,49 @@
+Service: Samba
+CVE: CVE-2017-7494
+
+Summary:
+- Remote Code Execution vulnerability in Samba versions 3.5.0 to 4.6.4
+- Allows authenticated users to upload a malicious shared library (.so file) to a writable SMB share
+- The server loads the uploaded library, executing arbitrary code with root privileges
+
+Affected Versions:
+- Samba 3.5.0 through 4.6.4
+
+Prerequisites:
+- Authenticated access to a writable SMB share
+- Ability to upload files to the share
+
+Detection:
+- SMB shares are writable by authenticated users
+- Samba version is between 3.5.0 and 4.6.4 (check with nmap or manual banner grab)
+- Vulnerable shares allow file uploads
+
+Exploitation Steps:
+1. Authenticate to the SMB share
+2. Upload a malicious shared library (.so file) crafted to execute code when loaded
+3. The Samba server automatically loads the library upon certain operations (e.g., accessing the share)
+4. Code executes with the privileges of the Samba process (often root)
+
+Example Exploitation:
+- Use tools like smbclient to upload the payload
+- Payload can be a reverse shell or command execution
+
+Impact:
+- Remote code execution as root or system user
+- Full compromise of the Samba server
+- Potential lateral movement in the network
+
+Mitigation:
+- Upgrade Samba to version 4.6.4 or later
+- Restrict SMB share permissions to read-only where possible
+- Use network segmentation to limit access to Samba services
+
+References:
+- https://www.samba.org/samba/security/CVE-2017-5638.html (wait, wrong CVE - actual is CVE-2017-7494)
+- Official Samba advisory for CVE-2017-7494
+- Exploit-DB entry if available
+
+Notes:
+- Requires authentication, unlike some anonymous exploits
+- Common in older Linux systems and CTF challenges
+- Test for writability before attempting exploitation

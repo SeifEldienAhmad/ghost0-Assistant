@@ -1,0 +1,55 @@
+Security Logging and Monitoring Failures (A09:2021):
+
+### Description:
+Logging and monitoring failures occur when applications don't properly log security events or fail to monitor for suspicious activities, allowing attackers to operate undetected.
+
+### Indicators:
+- No security event logging
+- No alerts on failed logins or suspicious activity
+- Logs not reviewed or monitored
+- Sensitive data in logs
+
+### Common Issues:
+- Missing audit trails
+- Insufficient log detail
+- Logs not protected
+- No real-time monitoring
+- Failure to respond to incidents
+
+### Testing Methodology:
+- Perform actions and check if logged
+- Attempt brute force without detection
+- Test for log injection
+- Verify log protection
+
+### Exploitation Techniques:
+- Operate undetected
+- Maintain persistence
+- Cover tracks by deleting logs
+- Avoid triggering alerts
+
+### Examples:
+- No logging of failed authentication
+- Admin actions not monitored
+- Logs stored in world-readable files
+- No SIEM integration
+
+### Tools:
+- Custom scripts to test logging
+- Log analysis tools
+- SIEM systems for monitoring
+- Burp Suite for activity testing
+
+### Mitigation:
+- Implement comprehensive logging
+- Log security events
+- Protect log integrity
+- Real-time monitoring and alerting
+- Regular log review
+- Implement incident response
+
+### Questions to Ask:
+- Will this action be logged?
+- Can I stay undetected?
+- Are logs monitored?
+- Can I tamper with logs?

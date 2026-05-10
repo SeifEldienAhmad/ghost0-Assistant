@@ -1,0 +1,11 @@
+requests
+beautifulsoup4
+langchain
+langchain-chroma
+langchain-ollama
+chromadb
+ollama
+numpy
+python-dotenv
+pydantic
+ddgs

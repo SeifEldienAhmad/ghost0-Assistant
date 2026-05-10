@@ -1,0 +1,64 @@
+Security Misconfiguration (A05:2021):
+
+### Description:
+Security Misconfiguration is the most common vulnerability, often resulting from insecure default configurations, incomplete configurations, or misconfigured cloud services.
+
+### Indicators:
+- Default credentials still enabled
+- Debug mode enabled in production
+- Directory listing enabled
+- Error messages revealing sensitive information
+- Unnecessary services running
+- Outdated software versions
+
+### Common Issues:
+- Exposed admin panels with default logins
+- Misconfigured HTTP headers (missing security headers)
+- Unnecessary ports/services open
+- Verbose error messages
+- Default accounts not disabled
+- Insecure cloud storage permissions
+- Missing patches/updates
+
+### Testing Methodology:
+- Check HTTP headers for security misconfigurations
+- Try default credentials (admin/admin, root/root)
+- Scan for open ports and services
+- Test for directory listing (/admin/, /backup/)
+- Check for exposed configuration files
+- Verify software versions for known vulnerabilities
+
+### Exploitation Techniques:
+- Access sensitive endpoints with default creds
+- Use exposed configurations for further attacks
+- Abuse verbose errors for information disclosure
+- Exploit outdated software
+- Gain unauthorized access via misconfigured permissions
+
+### Examples:
+- Admin panel at /admin with admin:admin
+- Directory listing showing sensitive files
+- Error: "Database connection failed: mysql://user:pass@host/db"
+- Cloud bucket publicly readable with sensitive data
+
+### Tools:
+- Nmap for port scanning
+- Nikto for web server misconfigurations
+- Dirbuster/Gobuster for directory enumeration
+- OWASP ZAP for header analysis
+- Default credential lists
+
+### Mitigation:
+- Implement secure defaults
+- Regular configuration reviews
+- Automated configuration scanning
+- Disable unnecessary features/services
+- Use security headers (CSP, HSTS, etc.)
+- Keep software updated
+- Implement least functionality principle
+
+### Questions to Ask:
+- What is exposed that shouldn't be?
+- Are defaults still in place?
+- Are configurations hardened?
+- Is sensitive information leaked in errors?

@@ -1,0 +1,60 @@
+Software and Data Integrity Failures (A08:2021) - Supply Chain:
+
+### Description:
+Software Supply Chain attacks involve compromising the integrity of software dependencies, build processes, or update mechanisms. This includes vulnerable third-party components and malicious packages.
+
+### Indicators:
+- Outdated libraries in use
+- Third-party scripts loaded from untrusted sources
+- Unsigned or unverified updates
+- Malicious dependencies in package managers
+
+### Common Issues:
+- Vulnerable dependencies (e.g., Log4j, Heartbleed)
+- Malicious packages in repositories
+- Compromised CI/CD pipelines
+- Insecure deserialization
+- Insufficient integrity checks
+
+### Testing Methodology:
+- Check dependency versions (npm audit, pip check)
+- Scan for known CVEs in dependencies
+- Verify package signatures
+- Test update mechanisms
+- Review third-party integrations
+
+### Exploitation Techniques:
+- Exploit known CVEs in libraries
+- Use dependency confusion attacks
+- Inject malicious code via compromised packages
+- Tamper with update processes
+- Abuse insecure deserialization
+
+### Examples:
+- Log4Shell (CVE-2021-44228) in Apache Log4j
+- SolarWinds supply chain attack
+- Malicious npm package with same name as popular library
+- Unsigned software updates
+
+### Tools:
+- OWASP Dependency-Check
+- Snyk
+- npm audit
+- pip-audit
+- Trivy for container scanning
+- Sigstore for signature verification
+
+### Mitigation:
+- Regularly update dependencies
+- Use dependency scanning tools
+- Verify package integrity and signatures
+- Implement SBOM (Software Bill of Materials)
+- Use trusted repositories only
+- Secure CI/CD pipelines
+- Implement code signing
+
+### Questions to Ask:
+- What external code is trusted?
+- Are dependencies up to date and secure?
+- Is supply chain integrity verified?
+- Can attackers compromise our dependencies?

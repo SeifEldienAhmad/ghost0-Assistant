@@ -1,0 +1,59 @@
+Insecure Design (A04:2021):
+
+### Description:
+Insecure Design refers to flaws in the application's architecture and design that lead to security vulnerabilities. This is different from implementation bugs - it's about fundamental design problems.
+
+### Indicators:
+- Missing security controls in design
+- No rate limiting implemented
+- Business logic that can be abused
+- Trusting client-side validation
+
+### Common Issues:
+- Flawed business logic assumptions
+- Missing authentication/authorization in workflows
+- Unlimited resource consumption
+- Predictable resource identifiers
+- Lack of proper session management
+- Inadequate error handling
+
+### Testing Methodology:
+- Abuse application workflows (skip steps, repeat actions)
+- Test for race conditions
+- Attempt excessive resource usage
+- Manipulate client-side data
+- Enumerate predictable IDs
+
+### Exploitation Techniques:
+- Bypass business rules (e.g., negative prices)
+- Abuse workflows for unauthorized actions
+- Resource exhaustion (DoS)
+- Logic flaws for privilege escalation
+- Manipulate shared resources
+
+### Examples:
+- Shopping cart with negative quantities
+- Password reset without proper verification
+- Unlimited login attempts
+- File upload without size/type checks
+- Predictable coupon codes
+
+### Tools:
+- Burp Suite for workflow manipulation
+- Custom scripts for fuzzing
+- Browser dev tools for client-side testing
+- Load testing tools for resource exhaustion
+
+### Mitigation:
+- Threat modeling during design phase
+- Implement secure design patterns
+- Defense in depth
+- Regular security reviews
+- Use secure defaults
+- Implement rate limiting and quotas
+
+### Questions to Ask:
+- What assumptions does the system make?
+- Can I break the intended workflow?
+- Are there logic flaws I can exploit?
+- Is client-side validation trusted?

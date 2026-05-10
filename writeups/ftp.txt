@@ -1,0 +1,61 @@
+FTP Enumeration & Exploitation:
+
+### Initial Recon:
+- Check if FTP service is running (port 21)
+- Identify FTP version (vsftpd, proftpd, FileZilla, etc.)
+- Test for anonymous login: ftp://anonymous:anonymous@host
+- Try common credentials: admin/admin, ftp/ftp, user/user
+
+### Enumeration Techniques:
+- List directories and files with LIST or NLST commands
+- Check file permissions (read/write/execute)
+- Look for hidden files (.bak, .old, .txt)
+- Identify writable directories
+- Check for backup files or config files
+
+### Common Vulnerabilities:
+- Anonymous write access → potential for uploading webshells
+- Misconfigured permissions allowing directory traversal
+- Weak credentials
+- Exposed sensitive files (configs, backups)
+- FTP bounce scan attacks
+
+### Attack Vectors:
+- If FTP root is linked to web root, upload PHP/shell scripts
+- Download sensitive configs (wp-config.php, .env, etc.)
+- Use found credentials for SSH or web panel access
+- Exploit known FTP server vulnerabilities (e.g., vsftpd backdoor)
+
+### Exploitation Examples:
+- Upload webshell: put shell.php
+- Download passwd: get /etc/passwd
+- Directory traversal: get ../../../../etc/passwd
+- Brute force credentials
+
+### Tools:
+- ftp (built-in Linux command)
+- lftp (advanced FTP client)
+- nmap scripts: ftp-anon, ftp-bounce, ftp-brute
+- Hydra/Medusa for credential brute forcing
+- Metasploit modules for FTP exploits
+
+### Post-Exploitation:
+- Check if FTP user has shell access
+- Pivot to other services with found creds
+- Upload malicious files for further compromise
+- Maintain persistence via cron jobs or backdoors
+
+### Mitigation:
+- Disable anonymous access
+- Use strong credentials
+- Implement IP whitelisting
+- Use SFTP/FTPS instead of plain FTP
+- Regular permission audits
+- Monitor FTP logs
+
+### Questions to Ask:
+- Can I upload files? Where are they stored?
+- Is FTP linked to a web service?
+- Are there writable directories?
+- Can I access sensitive files?
+- Are credentials weak or default?

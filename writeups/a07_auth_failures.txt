@@ -1,0 +1,59 @@
+Identification and Authentication Failures (A07:2021):
+
+### Description:
+Authentication failures occur when authentication mechanisms are improperly implemented, allowing attackers to compromise passwords, keys, or session tokens.
+
+### Indicators:
+- Weak password policies
+- No rate limiting on login attempts
+- Session cookies without secure flags
+- Predictable session IDs
+
+### Common Issues:
+- Credential stuffing attacks
+- Brute force without protection
+- Weak password recovery mechanisms
+- Session fixation vulnerabilities
+- Improper logout handling
+- Autocomplete enabled on password fields
+
+### Testing Methodology:
+- Attempt brute force attacks
+- Test session management
+- Check password reset functionality
+- Verify logout behavior
+- Test for session fixation
+
+### Exploitation Techniques:
+- Account takeover via credential stuffing
+- Session hijacking
+- Password reset poisoning
+- Brute force successful logins
+- Bypass authentication via flaws
+
+### Examples:
+- Unlimited login attempts
+- Password reset via email without verification
+- Session ID in URL parameters
+- Weak passwords accepted
+- No account lockout
+
+### Tools:
+- Hydra/Medusa for brute force
+- Burp Suite for session testing
+- Custom scripts for credential stuffing
+- OWASP ZAP for auth testing
+
+### Mitigation:
+- Implement strong password policies
+- Use multi-factor authentication (MFA)
+- Rate limiting and account lockout
+- Secure session management
+- Proper password reset flows
+- Use secure cookies (HttpOnly, Secure, SameSite)
+
+### Questions to Ask:
+- Can I brute force passwords?
+- Are sessions properly managed?
+- Is MFA required?
+- Can I bypass authentication?
